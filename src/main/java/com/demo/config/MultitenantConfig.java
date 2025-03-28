@@ -1,7 +1,7 @@
 package com.demo.config;
 
-import com.demo.master.TenantConfig;
-import com.demo.master.TenantConfigRepository;
+import com.demo.master.Tenant;
+import com.demo.master.TenantRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.jdbc.DataSourceBuilder;
@@ -16,8 +16,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -33,16 +31,16 @@ public class MultitenantConfig {
     private String defaultTenant;
 
     @Bean(name = "multitenantDataSource")
-    public DataSource dataSource(TenantConfigRepository tenantConfigRepository) {
-        Map<Object, Object> targetDataSources = tenantConfigRepository.findAll()
+    public DataSource dataSource(TenantRepository tenantRepository) {
+        Map<Object, Object> targetDataSources = tenantRepository.findAll()
                 .stream()
                 .collect(Collectors.toMap(
-                        TenantConfig::name,
+                        Tenant::name,
                         tenant -> DataSourceBuilder.create()
-                                .url(tenant.url())
-                                .username(tenant.username())
-                                .password(tenant.password())
-                                .driverClassName(tenant.driverClassName())
+                                .url(tenant.databaseHost())
+                                .username(tenant.databaseUsername())
+                                .password(tenant.databasePassword())
+                                .driverClassName(tenant.databaseDriverClassName())
                                 .build()));
 
         AbstractRoutingDataSource dataSource = new MultitenantDataSource();

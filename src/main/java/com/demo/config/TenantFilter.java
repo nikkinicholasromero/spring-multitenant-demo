@@ -18,7 +18,6 @@ public class TenantFilter extends OncePerRequestFilter {
             @NonNull FilterChain chain
     ) throws ServletException, IOException {
         TenantContext.clearCurrentTenant();
-
         String tenantName = request.getHeader("X-Tenant-ID");
         TenantContext.setCurrentTenant(tenantName);
         chain.doFilter(request, response);
