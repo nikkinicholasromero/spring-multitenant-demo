@@ -23,7 +23,7 @@ public class TenantController {
                 .map(e -> new TenantDto(
                         e.id(),
                         e.name(),
-                        e.databaseHost(),
+                        e.databaseUrl(),
                         e.databaseUsername(),
                         e.databasePassword(),
                         e.databaseDriverClassName()))

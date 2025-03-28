@@ -37,7 +37,7 @@ public class MultitenantConfig {
                 .collect(Collectors.toMap(
                         Tenant::name,
                         tenant -> DataSourceBuilder.create()
-                                .url(tenant.databaseHost())
+                                .url(tenant.databaseUrl())
                                 .username(tenant.databaseUsername())
                                 .password(tenant.databasePassword())
                                 .driverClassName(tenant.databaseDriverClassName())

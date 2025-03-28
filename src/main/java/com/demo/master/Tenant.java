@@ -17,8 +17,8 @@ public class Tenant extends BaseEntity<String> implements Serializable {
     @Column(name = "name")
     private String name;
 
-    @Column(name = "database_host")
-    private String databaseHost;
+    @Column(name = "database_url")
+    private String databaseUrl;
 
     @Column(name = "database_username")
     private String databaseUsername;
@@ -37,8 +37,8 @@ public class Tenant extends BaseEntity<String> implements Serializable {
         return name;
     }
 
-    public String databaseHost() {
-        return databaseHost;
+    public String databaseUrl() {
+        return databaseUrl;
     }
 
     public String databaseUsername() {
@@ -78,7 +78,7 @@ public class Tenant extends BaseEntity<String> implements Serializable {
         return new ToStringBuilder(this)
                 .append("id", id)
                 .append("name", name)
-                .append("databaseHost", databaseHost)
+                .append("databaseUrl", databaseUrl)
                 .append("databaseUsername", databaseUsername)
                 .append("databasePassword", "********")
                 .append("databaseDriverClassName", databaseDriverClassName)
