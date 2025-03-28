@@ -5,10 +5,15 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import java.io.Serializable;
+
 @Entity
 @Table(name = "tenant_config")
-public class TenantConfig {
+public class TenantConfig extends BaseEntity<String> implements Serializable {
     @Id
+    @Column(name = "id")
+    private String id;
+
     @Column(name = "name")
     private String name;
 
@@ -21,36 +26,31 @@ public class TenantConfig {
     @Column(name = "password")
     private String password;
 
-    public String name() {
-        return name;
+    @Column(name = "driver_class_name")
+    private String driverClassName;
+
+    public String id() {
+        return id;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public String name() {
+        return name;
     }
 
     public String url() {
         return url;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
     public String username() {
         return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     public String password() {
         return password;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public String driverClassName() {
+        return driverClassName;
     }
 
     @Override
@@ -62,24 +62,26 @@ public class TenantConfig {
         TenantConfig other = (TenantConfig) o;
 
         return new EqualsBuilder()
-                .append(name, other.name)
+                .append(id, other.id)
                 .isEquals();
     }
 
     @Override
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
-                .append(name)
+                .append(id)
                 .toHashCode();
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
+                .append("id", id)
                 .append("name", name)
                 .append("url", url)
                 .append("username", username)
-                .append("password", password)
+                .append("password", "********")
+                .append("driverClassName", driverClassName)
                 .toString();
     }
 }

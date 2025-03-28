@@ -9,13 +9,11 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import javax.sql.DataSource;
-import java.util.HashMap;
 import java.util.Objects;
 
 @Configuration
@@ -25,39 +23,21 @@ import java.util.Objects;
         entityManagerFactoryRef = "masterEntityManagerFactory",
         transactionManagerRef = "masterTransactionManager")
 public class MasterConfig {
-    @Bean
+    @Bean(name = "masterDataSource")
     @ConfigurationProperties("spring.datasource")
-    public DataSourceProperties masterDataSourceProperties() {
-        return new DataSourceProperties();
+    public DataSource dataSource(DataSourceProperties properties) {
+        return properties.initializeDataSourceBuilder().build();
     }
 
-    @Bean
-    public DataSource masterDataSource() {
-        return masterDataSourceProperties()
-                .initializeDataSourceBuilder()
-                .build();
-    }
-
-    @Bean
-    public EntityManagerFactoryBuilder entityManagerFactoryBuilder() {
-        return new EntityManagerFactoryBuilder(new HibernateJpaVendorAdapter(), new HashMap<>(), null);
-    }
-
+    @Primary
     @Bean(name = "masterEntityManagerFactory")
-    @Primary
-    public LocalContainerEntityManagerFactoryBean masterEntityManagerFactory(
-            DataSource masterDataSource,
-            EntityManagerFactoryBuilder builder) {
-        return builder
-                .dataSource(masterDataSource)
-                .packages("com.demo.master")
-                .build();
+    public LocalContainerEntityManagerFactoryBean entityManagerFactory(@Qualifier("masterDataSource") DataSource dataSource, EntityManagerFactoryBuilder builder) {
+        return builder.dataSource(dataSource).packages("com.demo.master").build();
     }
 
-    @Bean(name = "masterTransactionManager")
     @Primary
-    public PlatformTransactionManager masterTransactionManager(
-            @Qualifier("masterEntityManagerFactory") LocalContainerEntityManagerFactoryBean masterEntityManagerFactory) {
-        return new JpaTransactionManager(Objects.requireNonNull(masterEntityManagerFactory.getObject()));
+    @Bean(name = "masterTransactionManager")
+    public PlatformTransactionManager transactionManager(@Qualifier("masterEntityManagerFactory") LocalContainerEntityManagerFactoryBean entityManagerFactory) {
+        return new JpaTransactionManager(Objects.requireNonNull(entityManagerFactory.getObject()));
     }
 }

@@ -1,5 +1,7 @@
 package com.demo.config;
 
+import com.demo.master.TenantConfig;
+import com.demo.master.TenantConfigRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.jdbc.DataSourceBuilder;
@@ -7,7 +9,6 @@ import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -15,61 +16,49 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(
         basePackages = "com.demo.domain",
         entityManagerFactoryRef = "multitenantEntityManagerFactory",
-        transactionManagerRef = "multitenantTransactionManager"
-)
+        transactionManagerRef = "multitenantTransactionManager")
 public class MultitenantConfig {
     @Value("${default.tenant}")
     private String defaultTenant;
 
-    @Bean
-    public DataSource multitenantDataSource(DataSource masterDataSource) {
-        JdbcTemplate jdbcTemplate = new JdbcTemplate(masterDataSource);
-        Map<Object, Object> resolvedDataSources = new HashMap<>();
-
-        List<Map<String, Object>> tenants = jdbcTemplate.queryForList("SELECT name, url, username, password FROM tenant_config");
-
-        for (Map<String, Object> tenant : tenants) {
-            DataSourceBuilder<?> builder = DataSourceBuilder.create()
-                    .url((String) tenant.get("url"))
-                    .username((String) tenant.get("username"))
-                    .password((String) tenant.get("password"))
-                    .driverClassName("org.postgresql.Driver");
-
-            resolvedDataSources.put(tenant.get("name"), builder.build());
-        }
+    @Bean(name = "multitenantDataSource")
+    public DataSource dataSource(TenantConfigRepository tenantConfigRepository) {
+        Map<Object, Object> targetDataSources = tenantConfigRepository.findAll()
+                .stream()
+                .collect(Collectors.toMap(
+                        TenantConfig::name,
+                        tenant -> DataSourceBuilder.create()
+                                .url(tenant.url())
+                                .username(tenant.username())
+                                .password(tenant.password())
+                                .driverClassName(tenant.driverClassName())
+                                .build()));
 
         AbstractRoutingDataSource dataSource = new MultitenantDataSource();
-        dataSource.setDefaultTargetDataSource(resolvedDataSources.get(defaultTenant));
-        dataSource.setTargetDataSources(resolvedDataSources);
+        dataSource.setDefaultTargetDataSource(targetDataSources.get(defaultTenant));
+        dataSource.setTargetDataSources(targetDataSources);
         dataSource.afterPropertiesSet();
         return dataSource;
     }
 
-
     @Bean(name = "multitenantEntityManagerFactory")
-    public LocalContainerEntityManagerFactoryBean multitenantEntityManagerFactory(
-            DataSource multitenantDataSource,
-            EntityManagerFactoryBuilder builder) {
-        return builder
-                .dataSource(multitenantDataSource)
-                .packages("com.demo.domain")
-                .build();
+    public LocalContainerEntityManagerFactoryBean entityManagerFactory(@Qualifier("multitenantDataSource") DataSource dataSource, EntityManagerFactoryBuilder builder) {
+        return builder.dataSource(dataSource).packages("com.demo.domain").build();
     }
 
-
     @Bean(name = "multitenantTransactionManager")
-    public PlatformTransactionManager multitenantTransactionManager(
-            @Qualifier("multitenantEntityManagerFactory") LocalContainerEntityManagerFactoryBean multitenantEntityManagerFactory) {
-        return new JpaTransactionManager(Objects.requireNonNull(multitenantEntityManagerFactory.getObject()));
+    public PlatformTransactionManager transactionManager(@Qualifier("multitenantEntityManagerFactory") LocalContainerEntityManagerFactoryBean entityManagerFactoryBean) {
+        return new JpaTransactionManager(Objects.requireNonNull(entityManagerFactoryBean.getObject()));
     }
 }

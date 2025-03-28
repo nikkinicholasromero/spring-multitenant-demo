@@ -2,28 +2,25 @@ package com.demo.config;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.core.annotation.Order;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
 @Component
-@Order(1)
-class TenantFilter implements Filter {
+public class TenantFilter extends OncePerRequestFilter {
     @Override
-    public void doFilter(
-            ServletRequest request,
-            ServletResponse response,
-         FilterChain chain) throws IOException, ServletException {
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain chain
+    ) throws ServletException, IOException {
+        TenantContext.clearCurrentTenant();
 
-        HttpServletRequest req = (HttpServletRequest) request;
-        String tenantName = req.getHeader("X-Tenant-ID");
+        String tenantName = request.getHeader("X-Tenant-ID");
         TenantContext.setCurrentTenant(tenantName);
-
-        try {
-            chain.doFilter(request, response);
-        } finally {
-            TenantContext.setCurrentTenant("");
-        }
+        chain.doFilter(request, response);
     }
 }

@@ -21,11 +21,12 @@ public class TenantConfigController {
         return tenantConfigRepository.findAll()
                 .stream()
                 .map(e -> new TenantConfigDto(
+                        e.id(),
                         e.name(),
                         e.url(),
                         e.username(),
-                        e.password()
-                ))
+                        e.password(),
+                        e.driverClassName()))
                 .toList();
     }
 }
