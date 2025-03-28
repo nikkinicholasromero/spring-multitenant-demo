@@ -1,6 +1,9 @@
-package com.demo.domain;
+package com.demo.master;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -8,31 +11,29 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import java.io.Serializable;
 
 @Entity
-@Table(name = "employee")
-public class Employee extends BaseEntity<Long> implements Serializable {
+@Table(name = "tenant_domains")
+public class TenantDomain extends BaseEntity<String> implements Serializable {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Long id;
+    private String id;
 
-    @Column(name = "name")
-    private String name;
+    @Column(name = "tenant_id")
+    private String tenantId;
+
+    @Column(name = "domain_url")
+    private String domainUrl;
 
     @Override
-    public Long id() {
+    public String id() {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public String tenantId() {
+        return tenantId;
     }
 
-    public String name() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+    public String domainUrl() {
+        return domainUrl;
     }
 
     @Override
@@ -41,7 +42,7 @@ public class Employee extends BaseEntity<Long> implements Serializable {
 
         if (o == null || getClass() != o.getClass()) return false;
 
-        Employee other = (Employee) o;
+        TenantDomain other = (TenantDomain) o;
 
         return new EqualsBuilder()
                 .append(id, other.id)
@@ -59,7 +60,8 @@ public class Employee extends BaseEntity<Long> implements Serializable {
     public String toString() {
         return new ToStringBuilder(this)
                 .append("id", id)
-                .append("name", name)
+                .append("tenantId", tenantId)
+                .append("domainUrl", domainUrl)
                 .toString();
     }
 }

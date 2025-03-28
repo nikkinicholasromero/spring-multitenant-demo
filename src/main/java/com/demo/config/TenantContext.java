@@ -6,15 +6,12 @@ public class TenantContext {
     private TenantContext() {
     }
 
-    public static String getCurrentTenant() {
-        return CURRENT_TENANT.get();
-    }
-
     public static void setCurrentTenant(String tenant) {
+        CURRENT_TENANT.remove();
         CURRENT_TENANT.set(tenant);
     }
 
-    public static void clearCurrentTenant() {
-        CURRENT_TENANT.remove();
+    public static String getCurrentTenant() {
+        return CURRENT_TENANT.get();
     }
 }

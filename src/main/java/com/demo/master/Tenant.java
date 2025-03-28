@@ -29,6 +29,7 @@ public class Tenant extends BaseEntity<String> implements Serializable {
     @Column(name = "database_driver_class_name")
     private String databaseDriverClassName;
 
+    @Override
     public String id() {
         return id;
     }

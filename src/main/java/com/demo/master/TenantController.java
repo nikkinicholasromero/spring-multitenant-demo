@@ -26,7 +26,8 @@ public class TenantController {
                         e.databaseUrl(),
                         e.databaseUsername(),
                         e.databasePassword(),
-                        e.databaseDriverClassName()))
+                        e.databaseDriverClassName(),
+                        List.of()))
                 .toList();
     }
 }
